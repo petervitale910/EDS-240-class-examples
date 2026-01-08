@@ -1,0 +1,69 @@
+---
+title: "lab1"
+format: html
+author: 'Peter Vitale'
+---
+
+Packages:
+
+```{r}
+pacman::p_load('tidyverse', 'janitor', 'here')
+```
+
+-------------------------
+Load data:
+
+```{r}
+bees <- read_csv(here::here('week1', 'data', 'stressor.csv'))
+```
+
+```{r}
+bees <-  bees %>% 
+  clean_names()
+
+bees$state <- str_replace_all(string = bees$state,
+                              pattern = '[^a-zA-Z]',
+                              replacement = "")
+
+bees$stressor <- str_replace_all(string = bees$stressor,
+                              pattern = '[^a-zA-Z]',
+                              replacement = "")
+```
+
+Check class of year 
+-------
+```{r}
+class(bees$year)
+```
+pivoting
+-------
+```{r}
+long_bees <- bees %>% 
+  pivot_longer(cols = c('january_march':'october_december'),
+               names_to = 'months',
+               values_to = 'quantified_stress')
+
+# respell diseases
+long_bees$stressor <- str_replace_all(long_bees$stressor, 
+                'Disesases',
+                'Diseases')
+
+class(long_bees$months)
+
+long_bees_clean <- long_bees %>% 
+  mutate(quarter = case_when(months == 'january_march'~ 1,
+                             months == 'april_june' ~ 2,
+                             months == 'july_september' ~ 3,
+                             months == 'october_december' ~ 4)) %>% 
+  select(!months) %>% 
+  filter(! (state == "UnitedStates" |  state == "OtherStates"))
+
+```
+
+```{r}
+state_bees <- long_bees_clean %>% 
+  filter(state == 'NorthDakota',
+         stressor == 'Diseases')
+
+```
+
